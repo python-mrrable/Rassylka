@@ -39,9 +39,30 @@ class DeviceProfile:
             'Verdana', 'Georgia', 'Tahoma', 'Trebuchet MS'
         ]
         
+        # WebGL base extensions that will be used for sampling
+        self.base_extensions = [
+            'ANGLE_instanced_arrays',
+            'EXT_blend_minmax',
+            'EXT_color_buffer_half_float',
+            'EXT_disjoint_timer_query',
+            'EXT_float_blend',
+            'EXT_frag_depth',
+            'EXT_shader_texture_lod'
+        ]
+        
+    def _generate_webgl_extensions(self) -> List[str]:
+        """Генерирует список поддерживаемых расширений WebGL"""
+        # Ensure we don't try to sample more items than available
+        sample_size = random.randint(4, len(self.base_extensions))
+        return random.sample(self.base_extensions, sample_size)
+        
     def generate_device_info(self) -> Dict[str, Any]:
         """Генерирует информацию об устройстве"""
         gpu_info = random.choice(self.gpu_vendors)
+        
+        # Ensure we don't try to sample more fonts than available
+        font_sample_size = random.randint(5, min(10, len(self.common_fonts)))
+        
         return {
             'gpu': {
                 'vendor': gpu_info['vendor'],
@@ -57,7 +78,7 @@ class DeviceProfile:
                 'downlink': random.uniform(1.0, 15.0),
                 'rtt': random.randint(50, 200)
             },
-            'fonts': random.sample(self.common_fonts, random.randint(5, 10))
+            'fonts': random.sample(self.common_fonts, font_sample_size)
         }
         
     def _generate_webgl_params(self) -> Dict[str, Any]:
