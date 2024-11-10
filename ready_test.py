@@ -236,36 +236,42 @@ class ProxyManager:
         
     def _load_proxies(self) -> List[Dict]:
         """Загружает список прокси из файла"""
+        proxies = []
         try:
-            with open(self.proxy_file, 'r') as f:
-                proxies = []
+           with open(self.proxy_file, 'r') as f:
                 for line in f:
                     try:
-                        proxy_str = line.strip()
-                        if ':' not in proxy_str:
-                            continue
-                        
-                        parts = proxy_str.split(':')
-                        if len(parts) == 2:
-                            host, port = parts
-                            proxy = {
-                                'http': f'http://{host}:{port}',
-                                'https': f'http://{host}:{port}'
-                            }
-                        elif len(parts) == 4:
-                            host, port, username, password = parts
-                            proxy = {
-                                'http': f'http://{username}:{password}@{host}:{port}',
-                                'https': f'http://{username}:{password}@{host}:{port}'
-                            }
-                        proxies.append(proxy)
+                       proxy_str = line.strip()
+                       if ':' not in proxy_str:
+                           continue
+                    
+                       parts = proxy_str.split(':')
+                       if len(parts) == 2:
+                          host, port = parts
+                          proxy = {
+                              'http': f'http://{host}:{port}',
+                              'https': f'http://{host}:{port}'
+                          }
+                       elif len(parts) == 4:
+                          host, port, username, password = parts
+                          proxy = {
+                              'http': f'http://{username}:{password}@{host}:{port}',
+                              'https': f'http://{username}:{password}@{host}:{port}'
+                          }
+                       else:
+                          logging.error(f"Некорректный формат строки прокси: {proxy_str}")
+                          continue
+                    
+                       proxies.append(proxy)
                     except Exception as e:
-                        logging.error(f"Ошибка при разборе строки прокси: {str(e)}")
-                        continue
-                return proxies
+                      logging.error(f"Ошибка при разборе строки прокси: {str(e)}")
+                    continue
+           return proxies
         except Exception as e:
-            logging.error(f"Ошибка при загрузке файла прокси: {str(e)}")
-            return []
+          logging.error(f"Ошибка при загрузке файла прокси: {str(e)}")
+          return []
+
+
             
     def check_proxy(self, proxy: Dict) -> bool:
         """Проверяет работоспособность прокси"""
@@ -554,12 +560,14 @@ class YandexServicesMessenger:
     def __init__(self, proxy_file: Optional[str] = None, messages_file: Optional[str] = None):
         self.proxy_file = proxy_file
         self.messages_file = messages_file
+        # Initialize proxy_manager first
+        self.proxy_manager = ProxyManager(proxy_file)
+        # Then use it to load proxies
         self.proxies = self._load_proxies() if proxy_file else None
         self.messages = self._load_messages() if messages_file else None
         self.current_proxy_index = 0
         self.current_message_index = 0
         self.behavior_manager = BehaviorManager()
-        self.proxy_manager = ProxyManager(proxy_file)
         self.captcha_handler = CaptchaHandler()
         
     def _load_proxies(self) -> List[dict]:
